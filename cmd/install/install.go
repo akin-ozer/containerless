@@ -6,6 +6,6 @@ import (
 )
 
 func Install() {
-	s := access.ReadFile("static/scripts")
+	s := access.ReadFile("static/scripts/install.sh")
 	shell.PipedStdin("sh", s)
 }

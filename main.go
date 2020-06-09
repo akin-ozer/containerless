@@ -3,21 +3,19 @@ package main
 import (
 	"github.com/akin-ozer/containerless/cmd/deploy"
 	"github.com/akin-ozer/containerless/cmd/install"
-	"fmt"
+	"github.com/akin-ozer/containerless/cmd/remove"
 	"github.com/spf13/cobra"
-	"strings"
 )
 
 func main() {
-	var echoTimes int
 
 	var cmdDeploy = &cobra.Command{
-		Use:   "deploy [image to deploy]",
+		Use:   "deploy [image to deploy] [image name]",
 		Short: "Deploy app to cluster",
 		Long:  `Deploy docker image to cluster as serverless application, output will be URL of the application.`,
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
-			deploy.Deploy(strings.Join(args, " "))
+			deploy.Deploy(args[0], args[1])
 			//fmt.Println("Print: " + strings.Join(args, " ")docker.io/realvega/quarkus-hello)
 		},
 	}
@@ -33,23 +31,21 @@ Required binaries: kubectl, kind.`,
 		},
 	}
 
-	var cmdTimes = &cobra.Command{
-		Use:   "times [string to echo]",
-		Short: "Echo anything to the screen more times",
-		Long: `echo things multiple times back to the user by providing
-a count and a string.`,
-		Args: cobra.MinimumNArgs(1),
+	var cmdRemove = &cobra.Command{
+		Use:   "remove [noargs]",
+		Short: "remove environment",
+		Long:  `Remove environment to machine with deleting kind cluster.`,
+		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
-			for i := 0; i < echoTimes; i++ {
-				fmt.Println("Echo: " + strings.Join(args, " "))
-			}
+			remove.Remove()
 		},
 	}
 
-	cmdTimes.Flags().IntVarP(&echoTimes, "times", "t", 1, "times to echo the input")
-
+	//adding subcommands and flags
+	//cmdTimes.Flags().IntVarP(&echoTimes, "times", "t", 1, "times to echo the input")
+	//cmdInstall.AddCommand(cmdTimes)
 	var rootCmd = &cobra.Command{Use: "app"}
-	rootCmd.AddCommand(cmdDeploy, cmdInstall)
-	cmdInstall.AddCommand(cmdTimes)
+	rootCmd.AddCommand(cmdDeploy, cmdInstall, cmdRemove)
+
 	rootCmd.Execute()
 }

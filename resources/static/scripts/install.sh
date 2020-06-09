@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
+rm -rf .containerless
+mkdir .containerless
+wget -q -P .containerless/ https://raw.githubusercontent.com/akin-ozer/containerless/master/resources/static/kind-config.yaml
+wget -q -P .containerless/ https://raw.githubusercontent.com/akin-ozer/containerless/master/resources/static/ambassador-service.yaml
+wget -q -P .containerless/ https://raw.githubusercontent.com/akin-ozer/containerless/master/resources/static/config-br-defaults.yaml
+wget -q -P .containerless/ https://raw.githubusercontent.com/akin-ozer/containerless/master/resources/static/imc-channel.yaml
 
-kind create cluster --config config/kind-config.yaml
+kind create cluster --config .containerless/kind-config.yaml
 #dashboard
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-beta8/aio/deploy/recommended.yaml
 kubectl create clusterrolebinding default-admin --clusterrole cluster-admin --serviceaccount=default:default
@@ -19,7 +25,7 @@ sleep 120
 kubectl create namespace ambassador
 kubectl apply --namespace ambassador \
   --filename https://getambassador.io/yaml/ambassador/ambassador-rbac.yaml \
-  --filename config/ambassador-service.yaml
+  --filename .containerless/ambassador-service.yaml
 kubectl patch clusterrolebinding ambassador -p '{"subjects":[{"kind": "ServiceAccount", "name": "ambassador", "namespace": "ambassador"}]}'
 kubectl set env --namespace ambassador  deployments/ambassador AMBASSADOR_KNATIVE_SUPPORT=true
 sleep 120
@@ -46,13 +52,16 @@ kubectl apply  --selector knative.dev/crd-install=true \
 --filename https://github.com/knative/eventing/releases/download/v0.14.0/eventing.yaml
 kubectl apply --filename https://github.com/knative/eventing/releases/download/v0.14.0/eventing.yaml
 kubectl apply --filename https://github.com/knative/eventing/releases/download/v0.14.0/in-memory-channel.yaml
-kubectl apply --filename config/imc-channel.yaml
-kubectl apply --filename config/config-br-defaults.yaml
+kubectl apply --filename .containerless/imc-channel.yaml
+kubectl apply --filename .containerless/config-br-defaults.yaml
 kubectl apply --filename https://github.com/knative/eventing/releases/download/v0.14.0/channel-broker.yaml
 
 #restart
 kubectl delete po --all -n knative-serving
 sleep 120
+
+#serve endpoint to localhost
+nohup kubectl port-forward -n ambassador svc/ambassador 10000:80 &>/dev/null &
 
 #deploy app
 #kubectl apply -f config/service.yaml
