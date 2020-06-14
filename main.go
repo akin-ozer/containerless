@@ -1,9 +1,12 @@
 package main
 
 import (
+	"github.com/akin-ozer/containerless/cmd/check"
+	"github.com/akin-ozer/containerless/cmd/delete"
 	"github.com/akin-ozer/containerless/cmd/deploy"
+	"github.com/akin-ozer/containerless/cmd/get"
 	"github.com/akin-ozer/containerless/cmd/install"
-	"github.com/akin-ozer/containerless/cmd/remove"
+	"github.com/akin-ozer/containerless/cmd/purge"
 	"github.com/spf13/cobra"
 )
 
@@ -31,13 +34,44 @@ Required binaries: kubectl, kind.`,
 		},
 	}
 
-	var cmdRemove = &cobra.Command{
-		Use:   "remove [noargs]",
-		Short: "remove environment",
-		Long:  `Remove environment to machine with deleting kind cluster.`,
+	var cmdCheck = &cobra.Command{
+		Use:   "check [noargs]",
+		Short: "checks environment dependencies",
+		Long: `Checks environment  with docker running.
+Required binaries: kubectl, kind.`,
+		Args: cobra.NoArgs,
+		Run: func(cmd *cobra.Command, args []string) {
+			check.Check()
+		},
+	}
+
+	var cmdPurge = &cobra.Command{
+		Use:   "purge [noargs]",
+		Short: "purge environment",
+		Long:  `Purge environment with deleting kind cluster.`,
 		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
-			remove.Remove()
+			purge.Purge()
+		},
+	}
+
+	var cmdDelete = &cobra.Command{
+		Use:   "delete [deployment name]",
+		Short: "delete deployment",
+		Long:  `Delete previously deployed service.`,
+		Args:  cobra.ExactArgs(1),
+		Run: func(cmd *cobra.Command, args []string) {
+			delete.Delete(args[0])
+		},
+	}
+
+	var cmdGet = &cobra.Command{
+		Use:   "get [noargs]",
+		Short: "get deployments",
+		Long:  `Get all deployments.`,
+		Args:  cobra.NoArgs,
+		Run: func(cmd *cobra.Command, args []string) {
+			get.Get()
 		},
 	}
 
@@ -45,7 +79,7 @@ Required binaries: kubectl, kind.`,
 	//cmdTimes.Flags().IntVarP(&echoTimes, "times", "t", 1, "times to echo the input")
 	//cmdInstall.AddCommand(cmdTimes)
 	var rootCmd = &cobra.Command{Use: "app"}
-	rootCmd.AddCommand(cmdDeploy, cmdInstall, cmdRemove)
+	rootCmd.AddCommand(cmdDeploy, cmdInstall, cmdPurge, cmdCheck, cmdGet, cmdDelete)
 
 	rootCmd.Execute()
 }

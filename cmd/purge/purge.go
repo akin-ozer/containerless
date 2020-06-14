@@ -1,9 +1,9 @@
-package remove
+package purge
 
 import (
 	"github.com/akin-ozer/containerless/library/shell"
 )
 
-func Remove() {
+func Purge() {
 	shell.PipedStdin("sh", "kind delete cluster")
 }

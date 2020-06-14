@@ -3,18 +3,20 @@ package shell
 import (
 	"bufio"
 	"fmt"
-	"log"
 	"os/exec"
 	"strings"
 )
 
-func Execute(command string) {
-	cmd := exec.Command("sh", command)
-	stdoutStderr, err := cmd.CombinedOutput()
-	if err != nil {
-		log.Fatal(err)
+func Execute(command string) int {
+	cmd := exec.Command("sh", "-c", command)
+	cmd.Stderr = cmd.Stdout
+
+	if err := cmd.Start(); err != nil {
+		fmt.Println(err.Error())
 	}
-	fmt.Printf("%s\n", stdoutStderr)
+
+	cmd.Wait()
+	return cmd.ProcessState.ExitCode()
 }
 
 func Piped(command string) {
@@ -32,7 +34,7 @@ func Piped(command string) {
 		fmt.Println(line)
 		line, err = reader.ReadString('\n')
 	}
-
+	cmd.Wait()
 }
 
 func PipedStdin(command string, stdin string) {
@@ -51,11 +53,5 @@ func PipedStdin(command string, stdin string) {
 		fmt.Println(err.Error())
 	}
 	cmd.Wait()
-	//reader := bufio.NewReader(pipe)
-	//line, err := reader.ReadString('\n')
-	//for err == nil {
-	//	fmt.Println(line)
-	//	line, err = reader.ReadString('\n')
-	//}
 
 }
